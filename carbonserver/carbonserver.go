@@ -40,6 +40,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/lomik/go-carbon/helper/notifier"
 	"github.com/NYTimes/gziphandler"
 	"github.com/dgryski/go-expirecache"
 	trigram "github.com/dgryski/go-trigram"
@@ -258,6 +259,7 @@ type CarbonserverListener struct {
 	requestsTimes requestsTimes
 	exitChan      chan struct{}
 	timeBuckets   []uint64
+	notifier      notifier.Notifier
 
 	db *leveldb.DB
 }
@@ -353,6 +355,10 @@ func (listener *CarbonserverListener) SetInternalStatsDir(dbPath string) {
 
 func (listener *CarbonserverListener) SetPercentiles(percentiles []int) {
 	listener.percentiles = percentiles
+}
+
+func (listener *CarbonserverListener) SetNotifier(n notifier.Notifier) {
+	listener.notifier = n
 }
 
 func (listener *CarbonserverListener) CurrentFileIndex() *fileIndex {

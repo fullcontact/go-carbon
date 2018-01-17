@@ -87,6 +87,7 @@ type receiverConfig struct {
 
 type tagsConfig struct {
 	Enabled        bool      `toml:"enabled"`
+	GraphiteStyle  bool      `toml:"graphite-style"`
 	TagDB          string    `toml:"tagdb-url"`
 	TagDBTimeout   *Duration `toml:"tagdb-timeout"`
 	TagDBChunkSize int       `toml:"tagdb-chunk-size"`
@@ -113,6 +114,11 @@ type carbonserverConfig struct {
 	Percentiles             []int     `toml:"stats-percentiles"`
 }
 
+type notifierConfig struct {
+	Enabled bool `toml:"enabled"`
+	Size    uint64 `toml:"queue-size"`
+}
+
 type pprofConfig struct {
 	Listen  string `toml:"listen"`
 	Enabled bool   `toml:"enabled"`
@@ -134,6 +140,7 @@ type Config struct {
 	Pickle       *tcp.FramingOptions                 `toml:"pickle"`
 	Receiver     map[string](map[string]interface{}) `toml:"receiver"`
 	Carbonlink   carbonlinkConfig                    `toml:"carbonlink"`
+	Notifier     notifierConfig                      `toml:"notifier"`
 	Grpc         grpcConfig                          `toml:"grpc"`
 	Tags         tagsConfig                          `toml:"tags"`
 	Carbonserver carbonserverConfig                  `toml:"carbonserver"`
@@ -209,12 +216,17 @@ func NewConfig() *Config {
 				Duration: 30 * time.Second,
 			},
 		},
+		Notifier: notifierConfig{
+			Enabled: false,
+			Size: 1024*1024,
+		},
 		Grpc: grpcConfig{
 			Listen:  "127.0.0.1:7003",
 			Enabled: true,
 		},
 		Tags: tagsConfig{
 			Enabled: false,
+			GraphiteStyle: true,
 			TagDB:   "http://127.0.0.1:8000",
 			TagDBTimeout: &Duration{
 				Duration: time.Second,

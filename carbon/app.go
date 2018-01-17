@@ -17,6 +17,7 @@ import (
 	"github.com/lomik/go-carbon/persister"
 	"github.com/lomik/go-carbon/receiver"
 	"github.com/lomik/go-carbon/tags"
+	"github.com/lomik/go-carbon/helper/notifier"
 	"github.com/lomik/zapwriter"
 
 	// register receivers
@@ -43,6 +44,7 @@ type App struct {
 	Carbonserver   *carbonserver.CarbonserverListener
 	Tags           *tags.Tags
 	Collector      *Collector // (!!!) Should be re-created on every change config/modules
+	Notifier       notifier.Notifier
 	exit           chan bool
 }
 
@@ -71,6 +73,12 @@ func (app *App) configure() error {
 		cfg.Common.GraphPrefix = strings.Replace(cfg.Common.GraphPrefix, "{host}", hostname, -1)
 	} else {
 		cfg.Common.GraphPrefix = strings.Replace(cfg.Common.GraphPrefix, "{host}", "localhost", -1)
+	}
+
+	if cfg.Notifier.Enabled {
+		app.Notifier = notifier.NewTail(cfg.Notifier.Size)
+	} else {
+		app.Notifier = notifier.NewNoop(0)
 	}
 
 	if cfg.Whisper.Enabled {
@@ -260,10 +268,13 @@ func (app *App) startPersister() {
 		p.SetSparse(app.Config.Whisper.Sparse)
 		p.SetFLock(app.Config.Whisper.FLock)
 		p.SetWorkers(app.Config.Whisper.Workers)
+		p.SetOnCreate(app.Notifier.Push)
 
 		if app.Tags != nil {
 			p.SetTagsEnabled(true)
-			p.SetOnCreateTagged(app.Tags.Add)
+			if app.Config.Tags.GraphiteStyle {
+				p.SetOnCreateTagged(app.Tags.Add)
+			}
 		}
 
 		p.Start()
@@ -408,6 +419,7 @@ func (app *App) Start() (err error) {
 		carbonserver.SetGraphiteWeb10(conf.Carbonserver.GraphiteWeb10StrictMode)
 		carbonserver.SetInternalStatsDir(conf.Carbonserver.InternalStatsDir)
 		carbonserver.SetPercentiles(conf.Carbonserver.Percentiles)
+		carbonserver.SetNotifier(app.Notifier)
 		// carbonserver.SetQueryTimeout(conf.Carbonserver.QueryTimeout.Value())
 
 		if err = carbonserver.Listen(conf.Carbonserver.Listen); err != nil {
