@@ -3,6 +3,7 @@ package tags
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -79,6 +80,11 @@ func (t *Tags) Add(value string) {
 
 // Collect metrics
 func (t *Tags) Stat(send helper.StatCallback) {
+	if t.q == nil {
+		log.Printf("t.q = %+v\n", t.q)
+		return
+	}
+
 	helper.SendAndSubstractUint32("queuePutErrors", &t.q.stat.putErrors, send)
 	helper.SendAndSubstractUint32("queuePutCount", &t.q.stat.putCount, send)
 	helper.SendAndSubstractUint32("queueDeleteErrors", &t.q.stat.deleteErrors, send)

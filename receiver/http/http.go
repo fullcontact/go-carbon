@@ -146,6 +146,8 @@ func (rcv *HTTP) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data, err = parse.Plain(body)
 	}
 
+	fmt.Println(string(body))
+
 	if err != nil {
 		atomic.AddUint32(&rcv.errors, 1)
 		http.Error(w, "Parse failed", http.StatusBadRequest)

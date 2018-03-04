@@ -1,7 +1,7 @@
 syntax = "proto3";
 package carbonzipperpb;
 
-// Regenerate with  protoc --gogo_out=. carbonzipper.proto 
+// Regenerate with  protoc --gogo_out=. carbonzipper.proto
 
 message FetchResponse {
     string name = 1;
@@ -64,3 +64,29 @@ message MetricDetailsResponse {
 	uint64 FreeSpace = 2;
 	uint64 TotalSpace = 3;
 }
+
+message TagValue {
+	int32 Count = 1;
+	string Value = 2;
+}
+
+message Tag {
+	string Tag = 1;
+	repeated TagValue Values = 2;
+}
+
+message ListTagsResponse {
+	repeated Tag Tags = 1;
+}
+
+message StatTagResponse {
+	string Tag = 1;
+	repeated TagValue Values = 2;
+}
+
+message FindSeriesByTagsResponse {
+	repeated string Series = 1;
+}
+
+// message SeriesByTagsResponse {
+// }
