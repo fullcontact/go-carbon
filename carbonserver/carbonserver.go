@@ -474,7 +474,6 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 
 				taggedName := strings.TrimSuffix(info.Name(), ".wsp")
 				if strings.Contains(taggedName, ";") {
-					println("indexing tagged metric:", taggedName, p)
 					var metric string
 					for i, str := range strings.Split(taggedName, ";") {
 						if i == 0 {

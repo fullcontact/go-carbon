@@ -98,7 +98,7 @@ func main() {
 	if cfg.Common.User != "" {
 		runAsUser, err = user.Lookup(cfg.Common.User)
 		if err != nil {
-			log.Println(err)
+			log.Fatal(err)
 		}
 	}
 

@@ -2,6 +2,7 @@ package index
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
@@ -13,8 +14,6 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/uuid"
-	"github.com/kr/pretty"
 	"github.com/lomik/go-carbon/tags"
 )
 
@@ -63,11 +62,14 @@ func TestIndex(t *testing.T) {
 		overlapped := "overlapped"
 		for i := 0; i < 333333; i++ {
 			for _, dc := range []string{"ams", "sh", "sf"} {
-				machine := uuid.New()
+				var id = make([]byte, 18)
+				rand.Read(id)
+				machine := fmt.Sprintf("%x", id)
 				if _, err := fmt.Fprintf(testdataf, "disk.used,%s,%s,%s\n", dc, machine, overlapped); err != nil {
 					panic(err)
 				}
-				uniqMetric := fmt.Sprintf("special_per_instance_counter.%s", uuid.New())
+				rand.Read(id)
+				uniqMetric := fmt.Sprintf("special_per_instance_counter.%x", id)
 				if _, err := fmt.Fprintf(testdataf, "%s,%s,%s,%s\n", uniqMetric, dc, machine, overlapped); err != nil {
 					panic(err)
 				}
@@ -106,26 +108,18 @@ func TestIndex(t *testing.T) {
 	pprof.StartCPUProfile(profile)
 
 	start = time.Now()
-	pretty.Println(len(index.ListMetrics(
-		&TagValueExpr{},
-		[]*TagValueExpr{
-			{"dc", "ams", "="},
-			{"machine", "8704f178-04ce-4f13-b166-a890ad8ebc8c", "="},
-		},
-		0,
-	)))
-	t.Logf("list tiny took %s", time.Now().Sub(start))
+	t.Logf(
+		"list tiny (%d) took %s",
+		len(index.ListMetrics(&TagValueExpr{}, []*TagValueExpr{{"dc", "ams", "="}, {"machine", "8704f178-04ce-4f13-b166-a890ad8ebc8c", "="}}, 0)),
+		time.Now().Sub(start),
+	)
 
 	start = time.Now()
-	pretty.Println(len(index.ListMetrics(
-		&TagValueExpr{},
-		[]*TagValueExpr{
-			{"dc", "ams", "="},
-			{"overlapped", "overlapped", "="},
-		},
-		0,
-	)))
-	t.Logf("list big took %s", time.Now().Sub(start))
+	t.Logf(
+		"list big (%d) took %s",
+		len(index.ListMetrics(&TagValueExpr{}, []*TagValueExpr{{"dc", "ams", "="}, {"overlapped", "overlapped", "="}}, 0)),
+		time.Now().Sub(start),
+	)
 
 	pprof.StopCPUProfile()
 	profile.Close()

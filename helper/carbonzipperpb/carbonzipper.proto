@@ -72,7 +72,7 @@ message TagValue {
 
 message Tag {
 	string Tag = 1;
-	repeated TagValue Values = 2;
+	repeated TagValue Values = 2 [(gogoproto.nullable) = false];
 }
 
 message ListTagsResponse {
@@ -81,7 +81,7 @@ message ListTagsResponse {
 
 message StatTagResponse {
 	string Tag = 1;
-	repeated TagValue Values = 2;
+	repeated TagValue Values = 2 [(gogoproto.nullable) = false];
 }
 
 message FindSeriesByTagsResponse {
