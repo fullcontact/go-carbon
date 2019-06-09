@@ -20,6 +20,11 @@
 		ListMetricsResponse
 		MetricDetails
 		MetricDetailsResponse
+		TagValue
+		Tag
+		ListTagsResponse
+		StatTagResponse
+		FindSeriesByTagsResponse
 */
 package carbonzipperpb
 
@@ -362,6 +367,112 @@ func (m *MetricDetailsResponse) GetTotalSpace() uint64 {
 	return 0
 }
 
+type TagValue struct {
+	Count int32  `protobuf:"varint,1,opt,name=Count,proto3" json:"Count,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=Value,proto3" json:"Value,omitempty"`
+}
+
+func (m *TagValue) Reset()                    { *m = TagValue{} }
+func (m *TagValue) String() string            { return proto.CompactTextString(m) }
+func (*TagValue) ProtoMessage()               {}
+func (*TagValue) Descriptor() ([]byte, []int) { return fileDescriptorCarbonzipper, []int{11} }
+
+func (m *TagValue) GetCount() int32 {
+	if m != nil {
+		return m.Count
+	}
+	return 0
+}
+
+func (m *TagValue) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+type Tag struct {
+	Tag    string      `protobuf:"bytes,1,opt,name=Tag,proto3" json:"Tag,omitempty"`
+	Values []*TagValue `protobuf:"bytes,2,rep,name=Values" json:"Values,omitempty"`
+}
+
+func (m *Tag) Reset()                    { *m = Tag{} }
+func (m *Tag) String() string            { return proto.CompactTextString(m) }
+func (*Tag) ProtoMessage()               {}
+func (*Tag) Descriptor() ([]byte, []int) { return fileDescriptorCarbonzipper, []int{12} }
+
+func (m *Tag) GetTag() string {
+	if m != nil {
+		return m.Tag
+	}
+	return ""
+}
+
+func (m *Tag) GetValues() []*TagValue {
+	if m != nil {
+		return m.Values
+	}
+	return nil
+}
+
+type ListTagsResponse struct {
+	Tags []*Tag `protobuf:"bytes,1,rep,name=Tags" json:"Tags,omitempty"`
+}
+
+func (m *ListTagsResponse) Reset()                    { *m = ListTagsResponse{} }
+func (m *ListTagsResponse) String() string            { return proto.CompactTextString(m) }
+func (*ListTagsResponse) ProtoMessage()               {}
+func (*ListTagsResponse) Descriptor() ([]byte, []int) { return fileDescriptorCarbonzipper, []int{13} }
+
+func (m *ListTagsResponse) GetTags() []*Tag {
+	if m != nil {
+		return m.Tags
+	}
+	return nil
+}
+
+type StatTagResponse struct {
+	Tag    string      `protobuf:"bytes,1,opt,name=Tag,proto3" json:"Tag,omitempty"`
+	Values []*TagValue `protobuf:"bytes,2,rep,name=Values" json:"Values,omitempty"`
+}
+
+func (m *StatTagResponse) Reset()                    { *m = StatTagResponse{} }
+func (m *StatTagResponse) String() string            { return proto.CompactTextString(m) }
+func (*StatTagResponse) ProtoMessage()               {}
+func (*StatTagResponse) Descriptor() ([]byte, []int) { return fileDescriptorCarbonzipper, []int{14} }
+
+func (m *StatTagResponse) GetTag() string {
+	if m != nil {
+		return m.Tag
+	}
+	return ""
+}
+
+func (m *StatTagResponse) GetValues() []*TagValue {
+	if m != nil {
+		return m.Values
+	}
+	return nil
+}
+
+type FindSeriesByTagsResponse struct {
+	Series []string `protobuf:"bytes,1,rep,name=Series" json:"Series,omitempty"`
+}
+
+func (m *FindSeriesByTagsResponse) Reset()         { *m = FindSeriesByTagsResponse{} }
+func (m *FindSeriesByTagsResponse) String() string { return proto.CompactTextString(m) }
+func (*FindSeriesByTagsResponse) ProtoMessage()    {}
+func (*FindSeriesByTagsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptorCarbonzipper, []int{15}
+}
+
+func (m *FindSeriesByTagsResponse) GetSeries() []string {
+	if m != nil {
+		return m.Series
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*FetchResponse)(nil), "carbonzipperpb.FetchResponse")
 	proto.RegisterType((*MultiFetchResponse)(nil), "carbonzipperpb.MultiFetchResponse")
@@ -374,6 +485,11 @@ func init() {
 	proto.RegisterType((*ListMetricsResponse)(nil), "carbonzipperpb.ListMetricsResponse")
 	proto.RegisterType((*MetricDetails)(nil), "carbonzipperpb.MetricDetails")
 	proto.RegisterType((*MetricDetailsResponse)(nil), "carbonzipperpb.MetricDetailsResponse")
+	proto.RegisterType((*TagValue)(nil), "carbonzipperpb.TagValue")
+	proto.RegisterType((*Tag)(nil), "carbonzipperpb.Tag")
+	proto.RegisterType((*ListTagsResponse)(nil), "carbonzipperpb.ListTagsResponse")
+	proto.RegisterType((*StatTagResponse)(nil), "carbonzipperpb.StatTagResponse")
+	proto.RegisterType((*FindSeriesByTagsResponse)(nil), "carbonzipperpb.FindSeriesByTagsResponse")
 }
 func (m *FetchResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -822,6 +938,170 @@ func (m *MetricDetailsResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *TagValue) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TagValue) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Count != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintCarbonzipper(dAtA, i, uint64(m.Count))
+	}
+	if len(m.Value) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCarbonzipper(dAtA, i, uint64(len(m.Value)))
+		i += copy(dAtA[i:], m.Value)
+	}
+	return i, nil
+}
+
+func (m *Tag) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Tag) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Tag) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCarbonzipper(dAtA, i, uint64(len(m.Tag)))
+		i += copy(dAtA[i:], m.Tag)
+	}
+	if len(m.Values) > 0 {
+		for _, msg := range m.Values {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintCarbonzipper(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *ListTagsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ListTagsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Tags) > 0 {
+		for _, msg := range m.Tags {
+			dAtA[i] = 0xa
+			i++
+			i = encodeVarintCarbonzipper(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *StatTagResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StatTagResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Tag) > 0 {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCarbonzipper(dAtA, i, uint64(len(m.Tag)))
+		i += copy(dAtA[i:], m.Tag)
+	}
+	if len(m.Values) > 0 {
+		for _, msg := range m.Values {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintCarbonzipper(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *FindSeriesByTagsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *FindSeriesByTagsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Series) > 0 {
+		for _, s := range m.Series {
+			dAtA[i] = 0xa
+			i++
+			l = len(s)
+			for l >= 1<<7 {
+				dAtA[i] = uint8(uint64(l)&0x7f | 0x80)
+				l >>= 7
+				i++
+			}
+			dAtA[i] = uint8(l)
+			i++
+			i += copy(dAtA[i:], s)
+		}
+	}
+	return i, nil
+}
+
 func encodeFixed64Carbonzipper(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	dAtA[offset+1] = uint8(v >> 8)
@@ -1030,6 +1310,75 @@ func (m *MetricDetailsResponse) Size() (n int) {
 	}
 	if m.TotalSpace != 0 {
 		n += 1 + sovCarbonzipper(uint64(m.TotalSpace))
+	}
+	return n
+}
+
+func (m *TagValue) Size() (n int) {
+	var l int
+	_ = l
+	if m.Count != 0 {
+		n += 1 + sovCarbonzipper(uint64(m.Count))
+	}
+	l = len(m.Value)
+	if l > 0 {
+		n += 1 + l + sovCarbonzipper(uint64(l))
+	}
+	return n
+}
+
+func (m *Tag) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Tag)
+	if l > 0 {
+		n += 1 + l + sovCarbonzipper(uint64(l))
+	}
+	if len(m.Values) > 0 {
+		for _, e := range m.Values {
+			l = e.Size()
+			n += 1 + l + sovCarbonzipper(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *ListTagsResponse) Size() (n int) {
+	var l int
+	_ = l
+	if len(m.Tags) > 0 {
+		for _, e := range m.Tags {
+			l = e.Size()
+			n += 1 + l + sovCarbonzipper(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *StatTagResponse) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Tag)
+	if l > 0 {
+		n += 1 + l + sovCarbonzipper(uint64(l))
+	}
+	if len(m.Values) > 0 {
+		for _, e := range m.Values {
+			l = e.Size()
+			n += 1 + l + sovCarbonzipper(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *FindSeriesByTagsResponse) Size() (n int) {
+	var l int
+	_ = l
+	if len(m.Series) > 0 {
+		for _, s := range m.Series {
+			l = len(s)
+			n += 1 + l + sovCarbonzipper(uint64(l))
+		}
 	}
 	return n
 }
@@ -2462,6 +2811,484 @@ func (m *MetricDetailsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *TagValue) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarbonzipper
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TagValue: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TagValue: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Count", wireType)
+			}
+			m.Count = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Count |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Value = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarbonzipper(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Tag) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarbonzipper
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Tag: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Tag: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tag", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tag = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Values", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Values = append(m.Values, &TagValue{})
+			if err := m.Values[len(m.Values)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarbonzipper(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ListTagsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarbonzipper
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ListTagsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ListTagsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tags", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tags = append(m.Tags, &Tag{})
+			if err := m.Tags[len(m.Tags)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarbonzipper(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *StatTagResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarbonzipper
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StatTagResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StatTagResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tag", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tag = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Values", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Values = append(m.Values, &TagValue{})
+			if err := m.Values[len(m.Values)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarbonzipper(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *FindSeriesByTagsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarbonzipper
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: FindSeriesByTagsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: FindSeriesByTagsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Series", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarbonzipper
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Series = append(m.Series, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarbonzipper(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCarbonzipper
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipCarbonzipper(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2570,44 +3397,51 @@ var (
 func init() { proto.RegisterFile("carbonzipper.proto", fileDescriptorCarbonzipper) }
 
 var fileDescriptorCarbonzipper = []byte{
-	// 623 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x54, 0xdd, 0x4e, 0x13, 0x41,
-	0x14, 0xce, 0x76, 0xdb, 0xc2, 0x1e, 0x0a, 0xea, 0xa8, 0x64, 0x25, 0xd0, 0x34, 0x73, 0x61, 0x7a,
-	0x61, 0xd0, 0xc0, 0x05, 0xea, 0x95, 0x18, 0xad, 0x31, 0xa1, 0x91, 0x0c, 0x44, 0xa3, 0x89, 0x26,
-	0xd3, 0xe5, 0x94, 0x4e, 0x68, 0x77, 0x36, 0x33, 0x03, 0x01, 0xde, 0xc9, 0xf7, 0xf0, 0xd2, 0xc4,
-	0x17, 0x30, 0x3c, 0x88, 0x31, 0x33, 0xb3, 0xbb, 0x74, 0x17, 0xc2, 0xdd, 0xf9, 0xbe, 0xf3, 0x33,
-	0xdf, 0x99, 0x39, 0x67, 0x80, 0x24, 0x5c, 0x8d, 0x64, 0x7a, 0x29, 0xb2, 0x0c, 0xd5, 0x66, 0xa6,
-	0xa4, 0x91, 0x64, 0x65, 0x9e, 0xcb, 0x46, 0xf4, 0x67, 0x00, 0xcb, 0x03, 0x34, 0xc9, 0x84, 0xa1,
-	0xce, 0x64, 0xaa, 0x91, 0x10, 0x68, 0xa6, 0x7c, 0x86, 0x71, 0xd0, 0x0b, 0xfa, 0x11, 0x73, 0x36,
-	0x59, 0x87, 0x48, 0x1b, 0xae, 0xcc, 0xa1, 0x98, 0x61, 0xdc, 0xe8, 0x05, 0xfd, 0x16, 0xbb, 0x26,
-	0xc8, 0x1a, 0x2c, 0x6a, 0x23, 0x33, 0xe7, 0x0c, 0x9d, 0xb3, 0xc4, 0xde, 0x87, 0xde, 0xd7, 0x2c,
-	0x7c, 0x1e, 0x93, 0x55, 0x68, 0x9f, 0xf1, 0xe9, 0x29, 0xea, 0xb8, 0xd5, 0x0b, 0xfb, 0x01, 0xcb,
-	0x91, 0xcd, 0x11, 0x7a, 0x77, 0xa4, 0x31, 0x35, 0x71, 0xbb, 0x17, 0xf6, 0x17, 0x59, 0x89, 0xe9,
-	0x10, 0xc8, 0xf0, 0x74, 0x6a, 0x44, 0x55, 0xf3, 0x0e, 0x2c, 0xcc, 0xd0, 0x28, 0x91, 0xe8, 0x38,
-	0xe8, 0x85, 0xfd, 0xa5, 0xad, 0x8d, 0xcd, 0x6a, 0x9f, 0x9b, 0x95, 0x78, 0x56, 0x44, 0xd3, 0x1d,
-	0x88, 0x3e, 0x4c, 0xe5, 0x68, 0xc8, 0x4d, 0x32, 0xb1, 0x9d, 0x67, 0xdc, 0x4c, 0x8a, 0xce, 0xad,
-	0x6d, 0x35, 0x0a, 0xbd, 0x87, 0x7c, 0xec, 0xda, 0x5e, 0x64, 0x39, 0xa2, 0x5f, 0xa0, 0x63, 0x13,
-	0xef, 0xbc, 0xb5, 0x6d, 0x58, 0x98, 0xd9, 0xc2, 0xa8, 0xe3, 0x86, 0x53, 0xf5, 0xa4, 0xae, 0xaa,
-	0x3c, 0x9b, 0x15, 0x91, 0xf4, 0x3b, 0x44, 0x0c, 0x0d, 0xa6, 0x46, 0xc8, 0x94, 0xf4, 0xe1, 0x9e,
-	0xc6, 0x44, 0xa6, 0x47, 0x7a, 0x1f, 0xd5, 0xbe, 0x14, 0xa9, 0x71, 0x07, 0xb4, 0x58, 0x9d, 0x26,
-	0x4f, 0x61, 0x25, 0x3d, 0x9d, 0x8d, 0x50, 0x7d, 0x1a, 0x3b, 0x42, 0xe7, 0xcf, 0x54, 0x63, 0xe9,
-	0x9f, 0x00, 0x3a, 0x1f, 0xd3, 0xb1, 0xbc, 0x53, 0xf8, 0x33, 0x78, 0xc0, 0x8f, 0x8f, 0x15, 0x1e,
-	0x73, 0xab, 0x62, 0x88, 0x66, 0x22, 0x8f, 0x5c, 0xbd, 0x88, 0xdd, 0x74, 0x10, 0x0a, 0x9d, 0x19,
-	0x3f, 0x2f, 0x45, 0xe7, 0x23, 0x50, 0xe1, 0x6c, 0xcc, 0xf9, 0x40, 0x4c, 0x51, 0x0f, 0x78, 0x62,
-	0xa4, 0x72, 0xa3, 0xd0, 0x60, 0x15, 0x8e, 0xbc, 0x02, 0x50, 0x45, 0x82, 0x1f, 0x89, 0x5b, 0x6e,
-	0xac, 0x2c, 0xc9, 0xe6, 0x82, 0xe9, 0x0f, 0x20, 0x07, 0xa8, 0xce, 0x50, 0x55, 0x5a, 0x5b, 0x85,
-	0xb6, 0x76, 0x6c, 0xde, 0x5c, 0x8e, 0xc8, 0x0b, 0x68, 0x8a, 0x74, 0x2c, 0x5d, 0x47, 0x4b, 0x5b,
-	0xeb, 0xf5, 0x23, 0xe6, 0x6b, 0x30, 0x17, 0x49, 0x3f, 0x03, 0xf9, 0xe6, 0xdc, 0x95, 0xfa, 0x6f,
-	0x20, 0x52, 0xb9, 0x5d, 0xcc, 0x1d, 0xad, 0x17, 0xbb, 0x29, 0x8b, 0x5d, 0x27, 0xd1, 0xe7, 0xf0,
-	0x70, 0x4f, 0x68, 0x33, 0xf4, 0xd3, 0x58, 0x16, 0x8e, 0x61, 0x61, 0x38, 0x37, 0xce, 0x11, 0x2b,
-	0x20, 0x3d, 0x81, 0x65, 0x6f, 0xbe, 0x43, 0xc3, 0xc5, 0x54, 0xdb, 0xe7, 0x3b, 0x10, 0x97, 0x7e,
-	0x29, 0x43, 0xe6, 0x6c, 0x97, 0x2e, 0x8f, 0xca, 0x75, 0x0c, 0x59, 0x01, 0xc9, 0x23, 0x68, 0xed,
-	0x96, 0xab, 0x18, 0x32, 0x0f, 0xec, 0x3d, 0x31, 0x1f, 0xde, 0x72, 0x74, 0x8e, 0xe8, 0xbf, 0x00,
-	0x1e, 0x57, 0x4e, 0x2b, 0x05, 0xee, 0xd5, 0xf7, 0x6d, 0xab, 0xde, 0xf7, 0xad, 0x79, 0x39, 0xab,
-	0xdf, 0xa7, 0x46, 0x5d, 0x94, 0x4b, 0x68, 0x7f, 0x97, 0x81, 0x42, 0x3c, 0xc8, 0x78, 0xe2, 0x1b,
-	0x69, 0xb2, 0x6b, 0x82, 0x74, 0x01, 0x0e, 0xa5, 0xe1, 0x53, 0xef, 0x0e, 0x9d, 0x7b, 0x8e, 0x59,
-	0xfb, 0x0a, 0x9d, 0xf9, 0xb2, 0xe4, 0x3e, 0x84, 0x27, 0x78, 0x91, 0x3f, 0xb9, 0x35, 0xc9, 0x36,
-	0xb4, 0xdc, 0xcf, 0x92, 0x3f, 0xf8, 0xc6, 0xdd, 0x5a, 0x7d, 0xec, 0xeb, 0xc6, 0xcb, 0xe0, 0x6d,
-	0xe7, 0xd7, 0x55, 0x37, 0xf8, 0x7d, 0xd5, 0x0d, 0xfe, 0x5e, 0x75, 0x83, 0x51, 0xdb, 0xfd, 0xa0,
-	0xdb, 0xff, 0x03, 0x00, 0x00, 0xff, 0xff, 0xd3, 0x62, 0x83, 0x17, 0x57, 0x05, 0x00, 0x00,
+	// 736 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcd, 0x6a, 0x1b, 0x3b,
+	0x14, 0x66, 0x3c, 0xb6, 0xe3, 0x39, 0x71, 0x7e, 0xae, 0x72, 0x6f, 0x98, 0x1b, 0x12, 0x63, 0xb4,
+	0xb8, 0xd7, 0x8b, 0x92, 0x06, 0x07, 0x9a, 0xfe, 0x6c, 0x9a, 0xb4, 0x75, 0x09, 0xc4, 0x34, 0xc8,
+	0xae, 0x4b, 0x0b, 0x2d, 0xc8, 0xb6, 0x6c, 0x0f, 0xb1, 0x47, 0x83, 0x24, 0x87, 0x24, 0xef, 0xd4,
+	0xf7, 0xe8, 0xb2, 0xd0, 0x17, 0x28, 0x79, 0x90, 0x52, 0x24, 0xcd, 0x8c, 0x3d, 0x93, 0x90, 0x55,
+	0x77, 0xfa, 0xbe, 0xf3, 0xa3, 0xef, 0x9c, 0x39, 0x47, 0x03, 0x68, 0x40, 0x45, 0x9f, 0x87, 0x37,
+	0x41, 0x14, 0x31, 0xb1, 0x1f, 0x09, 0xae, 0x38, 0x5a, 0x5f, 0xe6, 0xa2, 0x3e, 0xfe, 0xea, 0xc0,
+	0x5a, 0x8b, 0xa9, 0xc1, 0x84, 0x30, 0x19, 0xf1, 0x50, 0x32, 0x84, 0xa0, 0x18, 0xd2, 0x19, 0xf3,
+	0x9d, 0xba, 0xd3, 0xf0, 0x88, 0x39, 0xa3, 0x5d, 0xf0, 0xa4, 0xa2, 0x42, 0x75, 0x83, 0x19, 0xf3,
+	0x0b, 0x75, 0xa7, 0x51, 0x22, 0x0b, 0x02, 0xed, 0x40, 0x45, 0x2a, 0x1e, 0x19, 0xa3, 0x6b, 0x8c,
+	0x29, 0xb6, 0x36, 0x66, 0x6d, 0xc5, 0xc4, 0x66, 0x31, 0xda, 0x86, 0xf2, 0x25, 0x9d, 0xce, 0x99,
+	0xf4, 0x4b, 0x75, 0xb7, 0xe1, 0x90, 0x18, 0xe9, 0x98, 0x40, 0x1e, 0xf7, 0x25, 0x0b, 0x95, 0x5f,
+	0xae, 0xbb, 0x8d, 0x0a, 0x49, 0x31, 0x6e, 0x03, 0x6a, 0xcf, 0xa7, 0x2a, 0xc8, 0x6a, 0x3e, 0x82,
+	0x95, 0x19, 0x53, 0x22, 0x18, 0x48, 0xdf, 0xa9, 0xbb, 0x8d, 0xd5, 0xe6, 0xde, 0x7e, 0xb6, 0xce,
+	0xfd, 0x8c, 0x3f, 0x49, 0xbc, 0xf1, 0x11, 0x78, 0x6f, 0xa7, 0xbc, 0xdf, 0xa6, 0x6a, 0x30, 0xd1,
+	0x95, 0x47, 0x54, 0x4d, 0x92, 0xca, 0xf5, 0x59, 0x6b, 0x0c, 0xe4, 0x19, 0xa3, 0x23, 0x53, 0x76,
+	0x85, 0xc4, 0x08, 0x7f, 0x80, 0xaa, 0x0e, 0x7c, 0xb0, 0x6b, 0x87, 0xb0, 0x32, 0xd3, 0x89, 0x99,
+	0xf4, 0x0b, 0x46, 0xd5, 0xbf, 0x79, 0x55, 0xe9, 0xdd, 0x24, 0xf1, 0xc4, 0x9f, 0xc1, 0x23, 0x4c,
+	0xb1, 0x50, 0x05, 0x3c, 0x44, 0x0d, 0xd8, 0x90, 0x6c, 0xc0, 0xc3, 0xa1, 0x3c, 0x67, 0xe2, 0x9c,
+	0x07, 0xa1, 0x32, 0x17, 0x94, 0x48, 0x9e, 0x46, 0xff, 0xc1, 0x7a, 0x38, 0x9f, 0xf5, 0x99, 0x78,
+	0x37, 0x32, 0x84, 0x8c, 0x3f, 0x53, 0x8e, 0xc5, 0x3f, 0x1c, 0xa8, 0x9e, 0x86, 0x23, 0xfe, 0xa0,
+	0xf0, 0x47, 0xf0, 0x17, 0x1d, 0x8f, 0x05, 0x1b, 0x53, 0xad, 0xa2, 0xcd, 0xd4, 0x84, 0x0f, 0x4d,
+	0x3e, 0x8f, 0xdc, 0x35, 0x20, 0x0c, 0xd5, 0x19, 0xbd, 0x4a, 0x45, 0xc7, 0x23, 0x90, 0xe1, 0xb4,
+	0xcf, 0x55, 0x2b, 0x98, 0x32, 0xd9, 0xa2, 0x03, 0xc5, 0x85, 0x19, 0x85, 0x02, 0xc9, 0x70, 0xe8,
+	0x19, 0x80, 0x48, 0x02, 0xec, 0x48, 0xdc, 0xd3, 0xb1, 0x34, 0x25, 0x59, 0x72, 0xc6, 0x5f, 0x00,
+	0x75, 0x98, 0xb8, 0x64, 0x22, 0x53, 0xda, 0x36, 0x94, 0xa5, 0x61, 0xe3, 0xe2, 0x62, 0x84, 0x0e,
+	0xa0, 0x18, 0x84, 0x23, 0x6e, 0x2a, 0x5a, 0x6d, 0xee, 0xe6, 0xaf, 0x58, 0xce, 0x41, 0x8c, 0x27,
+	0xee, 0x01, 0xfa, 0x64, 0xcc, 0x99, 0xfc, 0x2f, 0xc1, 0x13, 0xf1, 0x39, 0x99, 0x3b, 0x9c, 0x4f,
+	0x76, 0x57, 0x16, 0x59, 0x04, 0xe1, 0xc7, 0xb0, 0x75, 0x16, 0x48, 0xd5, 0xb6, 0xd3, 0x98, 0x26,
+	0xf6, 0x61, 0xa5, 0xbd, 0x34, 0xce, 0x1e, 0x49, 0x20, 0xbe, 0x80, 0x35, 0x7b, 0x7c, 0xcd, 0x14,
+	0x0d, 0xa6, 0x52, 0x7f, 0xbe, 0x4e, 0x70, 0x63, 0x97, 0xd2, 0x25, 0xe6, 0x6c, 0xc2, 0xf9, 0x30,
+	0x5d, 0x47, 0x97, 0x24, 0x10, 0xfd, 0x0d, 0xa5, 0xe3, 0x74, 0x15, 0x5d, 0x62, 0x81, 0xee, 0x13,
+	0xb1, 0xee, 0x25, 0x43, 0xc7, 0x08, 0xff, 0x72, 0xe0, 0x9f, 0xcc, 0x6d, 0xa9, 0xc0, 0xb3, 0xfc,
+	0xbe, 0x35, 0xf3, 0x75, 0xdf, 0x1b, 0x17, 0xb3, 0xf2, 0x4d, 0xa8, 0xc4, 0x75, 0xba, 0x84, 0xfa,
+	0x75, 0x69, 0x09, 0xc6, 0x3a, 0x11, 0x1d, 0xd8, 0x42, 0x8a, 0x64, 0x41, 0xa0, 0x1a, 0x40, 0x97,
+	0x2b, 0x3a, 0xb5, 0x66, 0xd7, 0x98, 0x97, 0x98, 0x9d, 0x8f, 0x50, 0x5d, 0x4e, 0x8b, 0x36, 0xc1,
+	0xbd, 0x60, 0xd7, 0xf1, 0x27, 0xd7, 0x47, 0x74, 0x08, 0x25, 0xf3, 0xb2, 0xc4, 0x1f, 0x7c, 0xef,
+	0x61, 0xad, 0xd6, 0xf7, 0x79, 0xe1, 0xa9, 0x83, 0x9f, 0x40, 0xa5, 0x4b, 0xc7, 0x3d, 0x8d, 0x75,
+	0xeb, 0x5e, 0xf1, 0x79, 0xba, 0x80, 0x16, 0x68, 0xb6, 0x97, 0xa6, 0xf6, 0x88, 0x05, 0xf8, 0x14,
+	0xdc, 0x2e, 0x1d, 0x6b, 0x25, 0x5d, 0x3a, 0x4e, 0x94, 0x68, 0xe6, 0x00, 0xca, 0x3d, 0xfb, 0xe2,
+	0xd9, 0x07, 0xc1, 0xcf, 0x4b, 0x49, 0xae, 0x23, 0xb1, 0x1f, 0x7e, 0x01, 0x9b, 0x7a, 0x42, 0xba,
+	0x74, 0xbc, 0xe8, 0xfe, 0xff, 0x50, 0xd4, 0x38, 0x6e, 0xfd, 0xd6, 0x3d, 0x39, 0x88, 0x71, 0xc0,
+	0xef, 0x61, 0xa3, 0xa3, 0xa8, 0x0e, 0x4e, 0x63, 0xff, 0x84, 0xa6, 0x26, 0xf8, 0xad, 0x20, 0x1c,
+	0x76, 0x98, 0x08, 0x98, 0x3c, 0xb9, 0xce, 0x68, 0xdb, 0x86, 0xb2, 0xe5, 0xe3, 0xc9, 0x8d, 0xd1,
+	0x49, 0xf5, 0xdb, 0x6d, 0xcd, 0xf9, 0x7e, 0x5b, 0x73, 0x7e, 0xde, 0xd6, 0x9c, 0x7e, 0xd9, 0xfc,
+	0x8c, 0x0e, 0x7f, 0x07, 0x00, 0x00, 0xff, 0xff, 0x64, 0xb2, 0x26, 0xbe, 0xa2, 0x06, 0x00, 0x00,
 }

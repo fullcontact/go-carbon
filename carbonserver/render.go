@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/lomik/go-carbon/tags"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -332,6 +333,30 @@ func (listener *CarbonserverListener) prepareDataProto(format responseFormat, ta
 			untilTime := tr.until
 
 			listener.logger.Debug("fetching data...")
+			if strings.Contains(metric.Name, ";") {
+				metric.Name = strings.Replace(metric.Name, "_DOT_", ".", -1)
+				listener.logger.Debug("fetching",
+					zap.Strings("prepareData.path", []string{tags.FilePath("", metric.Name, false)}),
+				)
+				res, err := listener.fetchDataPB(
+					metric.Name,
+					[]string{tags.FilePath("", metric.Name, false)},
+					[]bool{true},
+					fromTime,
+					untilTime,
+				)
+				if err != nil {
+					atomic.AddUint64(&listener.metrics.RenderErrors, 1)
+					listener.logger.Error("error while fetching the data",
+						zap.Error(err),
+					)
+					continue
+				}
+
+				multiv2.Metrics = append(multiv2.Metrics, res.Metrics...)
+				continue
+			}
+
 			files, leafs, err := listener.expandGlobs(metric.Name)
 			if err != nil {
 				listener.logger.Debug("expand globs returned an error",
