@@ -3,6 +3,7 @@ package carbonserver
 import (
 	"errors"
 	"math"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -89,6 +90,9 @@ func (r response) proto3() *protov3.FetchResponse {
 	}
 }
 
+// with tag, metric becomes a complicated partial file path like:
+// 	_tagged/55e/e99/local_DOT_random_DOT_diceroll_DOT_gc;tag1=tag1_98;tag2=2
+//
 func (listener *CarbonserverListener) fetchSingleMetric(metric string, pathExpression string, fromTime, untilTime int32) (response, error) {
 	logger := listener.logger.With(
 		zap.String("metric", metric),
@@ -114,8 +118,14 @@ func (listener *CarbonserverListener) fetchSingleMetric(metric string, pathExpre
 	until := int64(m.Timeseries.UntilTime())
 	step := int64(m.Timeseries.Step())
 
+	mName := metric
+	if strings.Contains(metric, ";") {
+		mName = strings.Replace(metric, "_DOT_", ".", -1)
+		mName = mName[strings.LastIndex(mName, "/")+1:]
+	}
+
 	resp := response{
-		Name:              metric,
+		Name:              mName,
 		StartTime:         from,
 		StopTime:          until,
 		StepTime:          step,

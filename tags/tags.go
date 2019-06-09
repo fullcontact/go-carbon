@@ -91,6 +91,10 @@ func (t *Tags) Add(value string, now bool) {
 
 // Collect metrics
 func (t *Tags) Stat(send helper.StatCallback) {
+	if t.q == nil {
+		return
+	}
+
 	helper.SendAndSubstractUint32("queuePutErrors", &t.q.stat.putErrors, send)
 	helper.SendAndSubstractUint32("queuePutCount", &t.q.stat.putCount, send)
 	helper.SendAndSubstractUint32("queueDeleteErrors", &t.q.stat.deleteErrors, send)

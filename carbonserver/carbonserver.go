@@ -47,6 +47,7 @@ import (
 	"github.com/lomik/go-carbon/helper"
 	"github.com/lomik/go-carbon/helper/stat"
 	"github.com/lomik/go-carbon/points"
+	tindex "github.com/lomik/go-carbon/tags/index"
 	"github.com/lomik/zapwriter"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/filter"
@@ -85,6 +86,13 @@ type metricStruct struct {
 	QueryCacheMiss       uint64
 	FindCacheHit         uint64
 	FindCacheMiss        uint64
+
+	FindTags          uint64
+	FindTagsErrors    uint64
+	StatTag           uint64
+	StatTagErrors     uint64
+	SeriesByTag       uint64
+	SeriesByTagErrors uint64
 }
 
 type requestsTimes struct {
@@ -408,6 +416,8 @@ type fileIndex struct {
 	accessTimes map[string]int64
 	freeSpace   uint64
 	totalSpace  uint64
+
+	tagsIdx *tindex.TagIndex
 }
 
 func NewCarbonserverListener(cacheGetFunc func(key string) []points.Point) *CarbonserverListener {
@@ -567,6 +577,8 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 	var files []string
 	details := make(map[string]*protov3.MetricDetails)
 
+	tagsIdx := tindex.NewTagIndex()
+
 	metricsKnown := uint64(0)
 	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -587,6 +599,24 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 					ModTime:  i.MTime,
 					ATime:    i.ATime,
 					RealSize: i.RealSize,
+				}
+
+				taggedName := strings.TrimSuffix(info.Name(), ".wsp")
+				if strings.Contains(taggedName, ";") {
+					var metric string
+					for i, str := range strings.Split(taggedName, ";") {
+						if i == 0 {
+							metric = strings.Replace(str, "_DOT_", ".", -1)
+							continue
+						}
+						pair := strings.Split(str, "=")
+						if len(pair) != 2 {
+							// TODO
+							// logger.Error()
+							continue
+						}
+						tagsIdx.Insert(pair[0], pair[1], metric, taggedName)
+					}
 				}
 			}
 		}
@@ -656,6 +686,7 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 		freeSpace:   freeSpace,
 		totalSpace:  totalSpace,
 		accessTimes: oldAccessTimes,
+		tagsIdx:     tagsIdx,
 	})
 
 	logger.Info("file list updated",
@@ -1011,6 +1042,11 @@ func (listener *CarbonserverListener) Listen(listen string) error {
 	carbonserverMux.HandleFunc("/metrics/details/", wrapHandler(listener.detailsHandler, statusCodes["details"]))
 	carbonserverMux.HandleFunc("/render/", wrapHandler(listener.renderHandler, statusCodes["render"]))
 	carbonserverMux.HandleFunc("/info/", wrapHandler(listener.infoHandler, statusCodes["info"]))
+
+	carbonserverMux.HandleFunc("/tags", wrapHandler(listener.listTagsHandler, statusCodes["find"]))
+	carbonserverMux.HandleFunc("/tags/", wrapHandler(listener.statTagHandler, statusCodes["find"]))
+	// carbonserverMux.HandleFunc("/tags/findSeries", wrapHandler(listener.tagsHandler, statusCodes["find"]))
+	carbonserverMux.HandleFunc("/seriesByTag", wrapHandler(listener.seriesByTagHandler, statusCodes["find"]))
 
 	carbonserverMux.HandleFunc("/forcescan", func(w http.ResponseWriter, r *http.Request) {
 		select {
