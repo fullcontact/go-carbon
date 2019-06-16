@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"runtime"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -23,6 +24,7 @@ type statModule interface {
 type Collector struct {
 	helper.Stoppable
 	graphPrefix    string
+	tags           []string
 	metricInterval time.Duration
 	endpoint       string
 	data           chan *points.Points
@@ -138,7 +140,11 @@ func NewCollector(app *App) *Collector {
 
 	sendCallback := func(moduleName string) func(metric string, value float64) {
 		return func(metric string, value float64) {
-			key := fmt.Sprintf("%s.%s.%s", c.graphPrefix, moduleName, metric)
+			tags := ";foo=bar"
+			if len(c.tags) > 0 {
+				tags = ";" + strings.Join(c.tags, ";")
+			}
+			key := fmt.Sprintf("%s.%s.%s%s", c.graphPrefix, moduleName, metric, tags)
 			logger.Info("collect", zap.String("metric", key), zap.Float64("value", value))
 			select {
 			case c.data <- points.NowPoint(key, value):

@@ -1,8 +1,10 @@
 package index
 
 import (
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
 	mindex "github.com/lomik/go-carbon/tags/index/metric"
 	tindex "github.com/lomik/go-carbon/tags/index/tag"
@@ -10,11 +12,15 @@ import (
 )
 
 type TagIndex struct {
+	sync.RWMutex
+
 	*tindex.Tree
 	metrics     *stringID
 	paths       *stringID
 	tvs         *stringID
 	path2Metric map[uint64]string
+
+	metricList map[string]struct{}
 }
 
 type TagValueInode = tvindex.TagValueInode
@@ -63,7 +69,14 @@ func NewTagIndex() *TagIndex {
 	return ti
 }
 
-func (ti *TagIndex) Insert(tag, val, metric, path string) {
+// Insert inserts a new Path for TagName&TagValue + Metric
+func (ti *TagIndex) Insert(originalPath, tag, val, metric, path string) {
+	ti.Lock()
+	defer ti.Unlock()
+	if _, ok := ti.metricList[originalPath]; ok {
+		return
+	}
+
 	tagNode, ok := ti.Get(tag)
 	if !ok {
 		tagNode = &TagInode{
@@ -103,9 +116,13 @@ func (ti *TagIndex) Insert(tag, val, metric, path string) {
 		}
 	}
 	ti.path2Metric[pid] = metric
+
+	ti.metricList[originalPath] = struct{}{}
 }
 
 func (t *TagIndex) ListTags(filter string, limit int) []string {
+	t.RLock()
+	defer t.RUnlock()
 	enum, err := t.SeekFirst()
 	if err != nil {
 		return nil
@@ -138,6 +155,8 @@ type TagStatValue struct {
 }
 
 func (t *TagIndex) StatTag(name string, valFilter string, limit int) *TagStat {
+	t.RLock()
+	defer t.RUnlock()
 	ti, ok := t.Get(name)
 	if !ok {
 		return nil
@@ -205,6 +224,8 @@ type Metric struct {
 }
 
 func (t *TagIndex) ListMetrics(metricExpr *TagValueExpr, tves []*TagValueExpr, limit int) []Metric {
+	t.RLock()
+	defer t.RUnlock()
 	var tvis [][]*TagValueInode
 	for _, tve := range tves {
 		tvis = append(tvis, t.findTagValue(tve))
@@ -278,6 +299,8 @@ func (t *TagIndex) ListMetrics(metricExpr *TagValueExpr, tves []*TagValueExpr, l
 }
 
 func (t *TagIndex) findTagValue(tve *TagValueExpr) []*TagValueInode {
+	t.RLock()
+	defer t.RUnlock()
 	ti, ok := t.Get(tve.Tag)
 	if !ok {
 		return nil
@@ -310,9 +333,33 @@ func (t *TagIndex) findTagValue(tve *TagValueExpr) []*TagValueInode {
 				tvi = append(tvi, tv)
 			}
 		case OpMatch:
-			// TODO(xhu)
+			if !ok {
+				break
+			}
+
+			r, err := regexp.Compile(tve.Value)
+			if err != nil {
+				break
+			}
+
+			// TODO: Check the implementation of regexp
+			if r.MatchString(tve.Value) {
+				tvi = append(tvi, tv)
+			}
 		case OpNotMatch:
-			// TODO(xhu)
+			if !ok {
+				break
+			}
+
+			r, err := regexp.Compile(tve.Value)
+			if err != nil {
+				break
+			}
+
+			// TODO: Check the implementation of regexp
+			if !r.MatchString(tve.Value) {
+				tvi = append(tvi, tv)
+			}
 		}
 	}
 

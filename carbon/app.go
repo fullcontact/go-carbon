@@ -429,6 +429,7 @@ func (app *App) Start() (err error) {
 		carbonserver.SetTrigramIndex(conf.Carbonserver.TrigramIndex)
 		carbonserver.SetInternalStatsDir(conf.Carbonserver.InternalStatsDir)
 		carbonserver.SetPercentiles(conf.Carbonserver.Percentiles)
+		carbonserver.SetHashOnly(app.Config.Whisper.HashFilenames)
 		// carbonserver.SetQueryTimeout(conf.Carbonserver.QueryTimeout.Value())
 
 		if conf.Prometheus.Enabled {

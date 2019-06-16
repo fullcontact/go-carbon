@@ -92,8 +92,7 @@ func (listener *CarbonserverListener) statTagHandler(wr http.ResponseWriter, req
 	var err error
 	var contentType string
 	var data = []byte("{}")
-	fidx := listener.CurrentFileIndex()
-	stat := fidx.tagsIdx.StatTag(tag, filter, limit)
+	stat := listener.tagsIdx.StatTag(tag, filter, limit)
 	if stat != nil {
 		var resp statTagResponse
 		resp.Tag = stat.Tag
@@ -176,8 +175,7 @@ func (listener *CarbonserverListener) listTagsHandler(wr http.ResponseWriter, re
 	var err error
 	var data = []byte(`{}`)
 	var contentType string
-	fidx := listener.CurrentFileIndex()
-	tags := fidx.tagsIdx.ListTags(filter, limit)
+	tags := listener.tagsIdx.ListTags(filter, limit)
 	var resp listTagsResponse
 	for _, tag := range tags {
 		resp.Tags = append(resp.Tags, tagType{Tag: tag})
@@ -298,8 +296,7 @@ func (listener *CarbonserverListener) seriesByTagHandler(wr http.ResponseWriter,
 		return
 	}
 
-	fidx := listener.CurrentFileIndex()
-	metrics := fidx.tagsIdx.ListMetrics(metricExpr, tagValues, limit)
+	metrics := listener.tagsIdx.ListMetrics(metricExpr, tagValues, limit)
 	paths := make([]string, 0, len(metrics))
 	for _, m := range metrics {
 		paths = append(paths, m.Path)

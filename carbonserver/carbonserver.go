@@ -39,7 +39,6 @@ import (
 	prom "github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 
-	"github.com/NYTimes/gziphandler"
 	"github.com/dgryski/go-expirecache"
 	"github.com/dgryski/go-trigram"
 	"github.com/dgryski/httputil"
@@ -87,12 +86,17 @@ type metricStruct struct {
 	FindCacheHit         uint64
 	FindCacheMiss        uint64
 
+	// Tag render/find/stat requests
 	FindTags          uint64
 	FindTagsErrors    uint64
 	StatTag           uint64
 	StatTagErrors     uint64
 	SeriesByTag       uint64
 	SeriesByTagErrors uint64
+
+	// Tag update/add requests
+	TagMultiSeries       uint64
+	TagMultiSeriesErrors uint64
 }
 
 type requestsTimes struct {
@@ -125,6 +129,10 @@ var statusCodes = map[string][]uint64{
 	"details":      make([]uint64, 5),
 	"info":         make([]uint64, 5),
 	"capabilities": make([]uint64, 5),
+	"tagMultiSeries": make([]uint64, 5),
+	"tagsList": make([]uint64, 5),
+	"tagsStat": make([]uint64, 5),
+	"seriesByTag": make([]uint64, 5),
 }
 
 type responseWriterWithStatus struct {
@@ -250,6 +258,7 @@ type CarbonserverListener struct {
 	internalStatsDir  string
 	flock             bool
 	compressed        bool
+	hashOnly          bool
 
 	queryCacheEnabled bool
 	queryCacheSizeMB  int
@@ -265,6 +274,8 @@ type CarbonserverListener struct {
 	requestsTimes requestsTimes
 	exitChan      chan struct{}
 	timeBuckets   []uint64
+
+	tagsIdx *tindex.TagIndex
 
 	prometheus prometheus
 
@@ -416,8 +427,6 @@ type fileIndex struct {
 	accessTimes map[string]int64
 	freeSpace   uint64
 	totalSpace  uint64
-
-	tagsIdx *tindex.TagIndex
 }
 
 func NewCarbonserverListener(cacheGetFunc func(key string) []points.Point) *CarbonserverListener {
@@ -441,6 +450,8 @@ func NewCarbonserverListener(cacheGetFunc func(key string) []points.Point) *Carb
 			returnedMetric:   func() {},
 			returnedPoint:    func(int) {},
 		},
+
+		tagsIdx: tindex.NewTagIndex(),
 	}
 }
 
@@ -455,6 +466,9 @@ func (listener *CarbonserverListener) SetFailOnMaxGlobs(failOnMaxGlobs bool) {
 }
 func (listener *CarbonserverListener) SetFLock(flock bool) {
 	listener.flock = flock
+}
+func (listener *CarbonserverListener) SetHashOnly(hashOnly bool) {
+	listener.hashOnly = hashOnly
 }
 func (listener *CarbonserverListener) SetBuckets(buckets int) {
 	listener.buckets = buckets
@@ -577,8 +591,6 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 	var files []string
 	details := make(map[string]*protov3.MetricDetails)
 
-	tagsIdx := tindex.NewTagIndex()
-
 	metricsKnown := uint64(0)
 	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -615,7 +627,7 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 							// logger.Error()
 							continue
 						}
-						tagsIdx.Insert(pair[0], pair[1], metric, taggedName)
+						listener.tagsIdx.Insert(pair[0], pair[1], metric, taggedName)
 					}
 				}
 			}
@@ -686,7 +698,6 @@ func (listener *CarbonserverListener) updateFileList(dir string) {
 		freeSpace:   freeSpace,
 		totalSpace:  totalSpace,
 		accessTimes: oldAccessTimes,
-		tagsIdx:     tagsIdx,
 	})
 
 	logger.Info("file list updated",
@@ -1043,10 +1054,11 @@ func (listener *CarbonserverListener) Listen(listen string) error {
 	carbonserverMux.HandleFunc("/render/", wrapHandler(listener.renderHandler, statusCodes["render"]))
 	carbonserverMux.HandleFunc("/info/", wrapHandler(listener.infoHandler, statusCodes["info"]))
 
-	carbonserverMux.HandleFunc("/tags", wrapHandler(listener.listTagsHandler, statusCodes["find"]))
-	carbonserverMux.HandleFunc("/tags/", wrapHandler(listener.statTagHandler, statusCodes["find"]))
+	carbonserverMux.HandleFunc("/tags/tagMultiSeries", wrapHandler(listener.tagMultiSeriesHandler, statusCodes["tagMultiSeries"]))
+	carbonserverMux.HandleFunc("/tags", wrapHandler(listener.listTagsHandler, statusCodes["tagsList"]))
+	carbonserverMux.HandleFunc("/tags/", wrapHandler(listener.statTagHandler, statusCodes["tagsStat"]))
 	// carbonserverMux.HandleFunc("/tags/findSeries", wrapHandler(listener.tagsHandler, statusCodes["find"]))
-	carbonserverMux.HandleFunc("/seriesByTag", wrapHandler(listener.seriesByTagHandler, statusCodes["find"]))
+	carbonserverMux.HandleFunc("/seriesByTag", wrapHandler(listener.seriesByTagHandler, statusCodes["seriesByTag"]))
 
 	carbonserverMux.HandleFunc("/forcescan", func(w http.ResponseWriter, r *http.Request) {
 		select {
@@ -1120,7 +1132,8 @@ func (listener *CarbonserverListener) Listen(listen string) error {
 	go listener.queryCache.ec.StoppableApproximateCleaner(10*time.Second, listener.exitChan)
 
 	srv := &http.Server{
-		Handler:      gziphandler.GzipHandler(carbonserverMux),
+		// Handler:      gziphandler.GzipHandler(carbonserverMux),
+		Handler:      carbonserverMux,
 		ReadTimeout:  listener.readTimeout,
 		IdleTimeout:  listener.idleTimeout,
 		WriteTimeout: listener.writeTimeout,
